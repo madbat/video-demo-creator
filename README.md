@@ -97,4 +97,4 @@ http://localhost:5173"). Either way the agent will:
 
 MIT © Anders Bjarby. The bundled **screenshot** skill is a separate project
 ([fltman/claude-code-skill-screenshot](https://github.com/fltman/claude-code-skill-screenshot))
-included here as a submodule; see that repository for its terms.
+included here as a submodule under its own MIT license.
