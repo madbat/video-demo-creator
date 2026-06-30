@@ -23,7 +23,17 @@ pip install elevenlabs pydub        # pydub optional (cleaner concat); ffmpeg us
 export ELEVENLABS_API_KEY=...        # never hardcode this in a committed file
 ```
 
-The key lives in your environment. Find a cloned voice id with:
+The key lives in your environment. Instead of exporting it each session you can
+put it in a **`.env`** file — `generate_dialogue.py` auto-loads `.env` from the
+current directory or any parent (existing env vars win, so it never overrides an
+exported key). Copy `.env.example` to `.env` and fill in the key; `.env` is
+gitignored. Override the path with `ELEVENLABS_ENV_FILE` if needed.
+
+```
+ELEVENLABS_API_KEY=your-key-here
+```
+
+Find a cloned (or stock) voice id with:
 
 ```bash
 curl -s -H "xi-api-key: $ELEVENLABS_API_KEY" https://api.elevenlabs.io/v1/voices \

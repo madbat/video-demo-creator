@@ -26,6 +26,47 @@ import re
 import subprocess
 import sys
 
+
+def load_dotenv_files():
+    """Load KEY=VALUE pairs from a .env file into os.environ (no dependency).
+
+    Existing environment variables are never overwritten. Searches $ELEVENLABS_ENV_FILE
+    (if set), then .env in the current working directory and its parents.
+    """
+    candidates = []
+    explicit = os.getenv("ELEVENLABS_ENV_FILE")
+    if explicit:
+        candidates.append(explicit)
+    d = os.getcwd()
+    while True:
+        candidates.append(os.path.join(d, ".env"))
+        parent = os.path.dirname(d)
+        if parent == d:
+            break
+        d = parent
+    for path in candidates:
+        if not path or not os.path.isfile(path):
+            continue
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith("#") or "=" not in line:
+                        continue
+                    if line.lower().startswith("export "):
+                        line = line[len("export "):]
+                    key, _, val = line.partition("=")
+                    key = key.strip()
+                    val = val.strip().strip('"').strip("'")
+                    if key and key not in os.environ:
+                        os.environ[key] = val
+        except OSError:
+            continue
+        break  # first readable .env wins
+
+
+load_dotenv_files()
+
 # Configurable via env so this works on any machine. Defaults assume a
 # whisper.cpp checkout in ~/whisper.cpp with a base ggml model.
 WHISPER_CLI = os.path.expanduser(

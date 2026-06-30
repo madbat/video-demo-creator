@@ -7,6 +7,11 @@ __pycache__/
 .venv/
 venv/
 
+# secrets / local env (never commit your ElevenLabs API key)
+.env
+.env.*
+!.env.example
+
 # demo working output (if you run the agent inside this repo)
 demo/
 node_modules/

@@ -1,12 +1,18 @@
 ---
 description: Make a narrated demo video of an app using the demo-creator agent
-argument-hint: <app URL or what to demo>
+argument-hint: <project name> <app URL>
 ---
 
 Launch the **demo-creator** subagent to produce a short, polished, narrated demo
 video that walks through every feature of the target below.
 
 Target: $ARGUMENTS
+
+First, establish the **project name** and **URL** (ask if either is missing), then
+create a single project folder `<DEMOS_ROOT>/<project-slug>/` (default
+`%USERPROFILE%\Demos` on Windows, `~/Demos` elsewhere; override with
+`DEMO_OUTPUT_DIR`) and write `project.json` there. All shots, audio, and the
+finished `<project-slug>-demo.mp4` go in that one folder.
 
 Before generating any audio, the agent must confirm with me:
 1. the **ElevenLabs voice** (offer my cloned voice), and

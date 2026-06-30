@@ -28,6 +28,45 @@ except ImportError:
 MAX_CHARS_PER_CHUNK = 2000
 
 
+def load_dotenv_files():
+    """Load KEY=VALUE pairs from a .env file into os.environ (no dependency).
+
+    Existing environment variables are never overwritten. Search order:
+      1. $ELEVENLABS_ENV_FILE (explicit path), if set
+      2. .env in the current working directory and its parent directories
+    """
+    candidates = []
+    explicit = os.getenv("ELEVENLABS_ENV_FILE")
+    if explicit:
+        candidates.append(explicit)
+    d = os.getcwd()
+    while True:
+        candidates.append(os.path.join(d, ".env"))
+        parent = os.path.dirname(d)
+        if parent == d:
+            break
+        d = parent
+    for path in candidates:
+        if not path or not os.path.isfile(path):
+            continue
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith("#") or "=" not in line:
+                        continue
+                    if line.lower().startswith("export "):
+                        line = line[len("export "):]
+                    key, _, val = line.partition("=")
+                    key = key.strip()
+                    val = val.strip().strip('"').strip("'")
+                    if key and key not in os.environ:
+                        os.environ[key] = val
+        except OSError:
+            continue
+        break  # first readable .env wins
+
+
 def get_client():
     api_key = os.getenv("ELEVENLABS_API_KEY")
     if not api_key:
@@ -117,6 +156,7 @@ def prune_orphans(cache_dir, keep_filenames):
 
 
 def main():
+    load_dotenv_files()
     p = argparse.ArgumentParser(description="ElevenLabs dialogue generation with per-chunk cache.")
     p.add_argument("--input", "-i", required=True, help="Path to JSON dialogue file")
     p.add_argument("--output", "-o", default="dialogue.mp3", help="Output MP3 path")
@@ -133,6 +173,17 @@ def main():
     if not isinstance(inputs, list):
         print("ERROR: input JSON must be an array")
         sys.exit(1)
+
+    # Allow a default voice via ELEVENLABS_VOICE_ID so it doesn't have to be
+    # repeated in every shot's JSON. An explicit per-line voice_id still wins.
+    default_voice = os.getenv("ELEVENLABS_VOICE_ID")
+    for i, item in enumerate(inputs):
+        if not item.get("voice_id"):
+            if default_voice:
+                item["voice_id"] = default_voice
+            else:
+                print(f"ERROR: line {i} has no voice_id and ELEVENLABS_VOICE_ID is not set")
+                sys.exit(1)
 
     chunks, starts = split_into_chunks(inputs, args.max_chars)
     total_chars = sum(len(i["text"]) for i in inputs)

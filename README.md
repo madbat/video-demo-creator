@@ -18,13 +18,15 @@ https://github.com/fltman/claude-code-demo-creator
 | **demo-creator** subagent | `agents/demo-creator.md` | Orchestrates the whole pipeline (scope → capture → narrate → voice-over → assemble → verify). |
 | **`/demo-video`** command | `commands/demo-video.md` | Slash command that kicks off the agent in one line: `/demo-video http://localhost:5173`. |
 | **elevenlabs-dialogue** skill | `skills/elevenlabs-dialogue/` | Generates per-shot narration audio via ElevenLabs Text-to-Dialogue, with a content-addressed cache + optional whisper.cpp verification. |
-| **screenshot** skill | `skills/screenshot/` *(git submodule)* | Captures macOS screenshots / app windows non-interactively. Lives at [fltman/claude-code-skill-screenshot](https://github.com/fltman/claude-code-skill-screenshot). |
+| **screenshot** skill | `skills/screenshot/` *(git submodule)* | Captures screenshots / app windows non-interactively. macOS via `screencapture` (`*.sh`); **Windows via PowerShell** (`*.ps1`). Lives at [fltman/claude-code-skill-screenshot](https://github.com/fltman/claude-code-skill-screenshot). |
 
 For **web apps** the agent prefers a **headed Playwright** browser (a headless
 one renders blank WebGL/canvas/map panels); the screenshot skill covers
 **native/desktop** apps.
 
 ## Install
+
+### macOS / Linux
 
 ```bash
 # clone with the screenshot submodule
@@ -41,6 +43,25 @@ cp -R skills/screenshot          ~/.claude/skills/
 
 (Project scope works too — put them under `<project>/.claude/{agents,commands,skills}`
 instead.)
+
+### Windows (PowerShell)
+
+```powershell
+# clone with the screenshot submodule
+git clone --recurse-submodules https://github.com/fltman/claude-code-demo-creator.git
+cd claude-code-demo-creator
+
+# install the agent + command + skills for Claude Code (user scope)
+$claude = "$env:USERPROFILE\.claude"
+New-Item -ItemType Directory -Force "$claude\agents", "$claude\commands", "$claude\skills" | Out-Null
+Copy-Item agents\demo-creator.md   "$claude\agents\"
+Copy-Item commands\demo-video.md   "$claude\commands\"
+Copy-Item -Recurse -Force skills\elevenlabs-dialogue "$claude\skills\"
+Copy-Item -Recurse -Force skills\screenshot          "$claude\skills\"
+```
+
+The screenshot skill ships both `*.sh` (macOS) and `*.ps1` (Windows) scripts;
+the agent picks the right one for your platform.
 
 ## Prerequisites
 
@@ -62,6 +83,24 @@ npm i -g playwright && npx playwright install chromium
 
 A macOS host is assumed for the screenshot skill (`screencapture`) and `open`.
 The audio + ffmpeg + Playwright steps are cross-platform.
+
+### Windows prerequisites
+
+```powershell
+# audio (ElevenLabs)
+pip install elevenlabs pydub
+$env:ELEVENLABS_API_KEY = "..."          # session-only; set permanently via System > Environment Variables
+
+# video assembly — install ffmpeg (any of these)
+winget install Gyan.FFmpeg            # or: choco install ffmpeg
+
+# web-app capture
+npm i -g playwright; npx playwright install chromium
+```
+
+The Windows **screenshot** skill uses the built-in PowerShell/.NET + Win32 APIs —
+no extra install. Native/desktop capture works (`capture.ps1 app "<App>"`),
+while web apps use headed Playwright like everywhere else.
 
 ## Use it
 
