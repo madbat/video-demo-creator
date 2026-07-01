@@ -1,3 +1,0 @@
-[submodule "skills/screenshot"]
-	path = skills/screenshot
-	url = https://github.com/fltman/claude-code-skill-screenshot.git

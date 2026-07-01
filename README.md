@@ -1,4 +1,4 @@
-# Claude Code — Demo Creator
+# VIEDO — Demo Creator
 
 A Claude Code **subagent** that turns a running app into a short, polished,
 **narrated demo video** — it captures each feature as a screenshot, writes a
